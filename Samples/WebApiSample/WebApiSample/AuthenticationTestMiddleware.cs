@@ -2,14 +2,9 @@
 // Licensed under the MIT License. See License.txt in the project root for
 // license information.
 
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Linq;
 using System.Net;
 using System.Security.Principal;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AppBackend
 {
@@ -19,31 +14,37 @@ namespace AppBackend
 
         public AuthenticationTestMiddleware(RequestDelegate next) => _next = next;
 
-        public async Task Invoke(HttpContext context)
+        public async Task InvokeAsync(HttpContext context)
         {
-            var authorizationHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+            var authorizationHeader = context.Request.Headers.Authorization.FirstOrDefault();
 
-            if (authorizationHeader != null && authorizationHeader
-                .StartsWith("Basic ", StringComparison.InvariantCultureIgnoreCase))
+            if (authorizationHeader != null && authorizationHeader.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase))
             {
-                var authorizationUserAndPwdBase64 =
-                    authorizationHeader.Substring("Basic ".Length);
-                var authorizationUserAndPwd = Encoding.Default
-                    .GetString(Convert.FromBase64String(authorizationUserAndPwdBase64));
-                var user = authorizationUserAndPwd.Split(':')[0];
-                var password = authorizationUserAndPwd.Split(':')[1];
+                var encodedCredentials = authorizationHeader["Basic ".Length..];
+                var credentials = Encoding.UTF8.GetString(Convert.FromBase64String(encodedCredentials));
+                var separatorIndex = credentials.IndexOf(':');
 
-                if (verifyUserAndPwd(user, password))
+                if (separatorIndex >= 0)
                 {
-                    // Attach the new principal object to the current HttpContext object
-                    context.User =
-                        new GenericPrincipal(new GenericIdentity(user), new string[0]);
-                    Thread.CurrentPrincipal =
-                        context.User;
+                    var user = credentials[..separatorIndex];
+                    var password = credentials[(separatorIndex + 1)..];
+
+                    if (VerifyUserAndPassword(user, password))
+                    {
+                        var claims = new[] { new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, user) };
+                        var identity = new GenericIdentity(user);
+                        var principal = new GenericPrincipal(identity, null);
+                        context.User = principal;
+                    }
+                    else
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                        return;
+                    }
                 }
                 else
                 {
-                    context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                     return;
                 }
             }
@@ -53,10 +54,10 @@ namespace AppBackend
                 return;
             }
 
-            await _next.Invoke(context);
+            await _next(context);
         }
 
-        private bool verifyUserAndPwd(string user, string password)
+        private static bool VerifyUserAndPassword(string user, string password)
         {
             // This is not a real authentication scheme.
             return user == password;

@@ -2,20 +2,26 @@
 // Licensed under the MIT License. See License.txt in the project root for
 // license information.
 
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
+using AppBackend;
 
-namespace AppBackend
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+//builder.Services.AddEndpointsApiExplorer();
+
+var app = builder.Build();
+
+app.UseMiddleware<AuthenticationTestMiddleware>();
+
+if (app.Environment.IsDevelopment())
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            CreateWebHostBuilder(args).Build().Run();
-        }
-
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
-    }
+    app.UseDeveloperExceptionPage();
 }
+else
+{
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.MapControllers();
+app.Run();

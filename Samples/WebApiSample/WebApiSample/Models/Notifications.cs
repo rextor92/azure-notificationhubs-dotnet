@@ -8,7 +8,7 @@ namespace AppBackend.Models
 {
     public class Notifications
     {
-        public static Notifications Instance = new Notifications();
+        public static Notifications Instance { get; set; } = new Notifications();
 
         public NotificationHubClient Hub { get; set; }
 
