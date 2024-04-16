@@ -14,8 +14,8 @@ namespace SendPushSample
 {
     class Program
     {
-        private const string FcmSampleNotificationContent = "{\"data\":{\"message\":\"Notification Hub test notification from SDK sample\"}}";
-        private const string FcmSampleSilentNotificationContent = "{ \"message\":{\"data\":{ \"Nick\": \"Mario\", \"body\": \"great match!\", \"Room\": \"PortugalVSDenmark\" } }}";
+        private const string FcmV1SampleNotificationContent = "{\"message\":{\"data\":{\"message\":\"Notification Hub test notification from SDK sample\"}}}";
+        private const string FcmV1SampleSilentNotificationContent = "{ \"message\":{\"data\":{ \"Nick\": \"Mario\", \"body\": \"great match!\", \"Room\": \"PortugalVSDenmark\" } }}";
         private const string AppleSampleNotificationContent = "{\"aps\":{\"alert\":\"Notification Hub test notification from SDK sample\"}}";
         private const string AppleSampleSilentNotificationContent = "{\"aps\":{\"content-available\":1}, \"foo\": 2 }";
         private const string WnsSampleNotification = "<?xml version=\"1.0\" encoding=\"utf-8\"?><toast><visual><binding template=\"ToastText01\"><text id=\"1\">Notification Hub test notification from SDK sample</text></binding></visual></toast>";
@@ -27,16 +27,16 @@ namespace SendPushSample
             var nhClient = NotificationHubClient.CreateClientFromConnectionString(config.PrimaryConnectionString, config.HubName);
 
             // Register some fake devices
-            var fcmDeviceId = Guid.NewGuid().ToString();
-            var fcmInstallation = new Installation
+            var fcmV1DeviceId = Guid.NewGuid().ToString();
+            var fcmV1Installation = new Installation
             {
-                InstallationId = "fake-fcm-install-id",
-                Platform = NotificationPlatform.Fcm,
-                PushChannel = fcmDeviceId,
+                InstallationId = "fake-fcmv1-install-id",
+                Platform = NotificationPlatform.FcmV1,
+                PushChannel = fcmV1DeviceId,
                 PushChannelExpired = false,
-                Tags = new[] { "fcm" }
+                Tags = new[] { "fcmv1" }
             };
-            await nhClient.CreateOrUpdateInstallationAsync(fcmInstallation);
+            await nhClient.CreateOrUpdateInstallationAsync(fcmV1Installation);
 
             var appleDeviceId = "00fc13adff785122b4ad28809a3420982341241421348097878e577c991de8f0";
             var apnsInstallation = new Installation
@@ -53,11 +53,11 @@ namespace SendPushSample
             {
                 case SampleConfiguration.Operation.Broadcast:
                     // Notification groups should be created on client side
-                    var outcomeFcm = await nhClient.SendFcmNativeNotificationAsync(FcmSampleNotificationContent);
-                    await GetPushDetailsAndPrintOutcome("FCM", nhClient, outcomeFcm);
+                    var outcomeFcm = await nhClient.SendFcmV1NativeNotificationAsync(FcmV1SampleNotificationContent);
+                    await GetPushDetailsAndPrintOutcome("FCMV1", nhClient, outcomeFcm);
 
-                    var outcomeSilentFcm = await nhClient.SendFcmNativeNotificationAsync(FcmSampleSilentNotificationContent);
-                    await GetPushDetailsAndPrintOutcome("FCM Silent", nhClient, outcomeSilentFcm);
+                    var outcomeSilentFcm = await nhClient.SendFcmV1NativeNotificationAsync(FcmV1SampleSilentNotificationContent);
+                    await GetPushDetailsAndPrintOutcome("FCMV1 Silent", nhClient, outcomeSilentFcm);
 
                     // Send groupable notifications to iOS
                     var notification = new AppleNotification(AppleSampleNotificationContent);
@@ -78,16 +78,16 @@ namespace SendPushSample
                     break;
                 case SampleConfiguration.Operation.SendByTag:
                     // Send notifications by tag
-                    var outcomeFcmByTag = await nhClient.SendFcmNativeNotificationAsync(FcmSampleNotificationContent, config.Tag ?? "fcm");
-                    await GetPushDetailsAndPrintOutcome("FCM Tags", nhClient, outcomeFcmByTag);
+                    var outcomeFcmByTag = await nhClient.SendFcmV1NativeNotificationAsync(FcmV1SampleNotificationContent, config.Tag ?? "fcmv1");
+                    await GetPushDetailsAndPrintOutcome("FCMV1 Tags", nhClient, outcomeFcmByTag);
 
                     var outcomeApnsByTag = await nhClient.SendAppleNativeNotificationAsync(AppleSampleNotificationContent, config.Tag ?? "apns");
-                    await GetPushDetailsAndPrintOutcome("APNS Tags", nhClient, outcomeApnsByTag);
+                    await GetPushDetailsAndPrintOutcome("APNSV1 Tags", nhClient, outcomeApnsByTag);
 
                     break;
                 case SampleConfiguration.Operation.SendByDevice:
                     // Send notifications by deviceId
-                    var outcomeFcmByDeviceId = await nhClient.SendDirectNotificationAsync(CreateFcmNotification(), config.FcmDeviceId ?? fcmDeviceId);
+                    var outcomeFcmByDeviceId = await nhClient.SendDirectNotificationAsync(CreateFcmV1Notification(), config.FcmV1DeviceId ?? fcmV1DeviceId);
                     await GetPushDetailsAndPrintOutcome("FCM Direct", nhClient, outcomeFcmByDeviceId);
 
                     var outcomeApnsByDeviceId = await nhClient.SendDirectNotificationAsync(CreateApnsNotification(), config.AppleDeviceId ?? appleDeviceId);
@@ -100,9 +100,9 @@ namespace SendPushSample
             }
         }
 
-        private static Notification CreateFcmNotification()
+        private static Notification CreateFcmV1Notification()
         {
-            return new FcmNotification(FcmSampleNotificationContent);
+            return new FcmNotification(FcmV1SampleNotificationContent);
         }
 
         private static Notification CreateApnsNotification()
@@ -152,17 +152,6 @@ namespace SendPushSample
             Console.WriteLine($"{pnsType} has no outcome due to it is only available for Standard SKU pricing tier.");
         }
 
-        private static SampleConfiguration LoadConfiguration(string[] args)
-        {
-            ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
-            configurationBuilder.AddJsonFile("config.json", true);
-            configurationBuilder.AddCommandLine(args);
-            var configRoot = configurationBuilder.Build();
-            var sampleConfig = new SampleConfiguration();
-            configRoot.Bind(sampleConfig);
-            return sampleConfig;
-        }
-
         private static async Task GetPushDetailsAndPrintOutcome(
             string pnsType,
             NotificationHubClient nhClient,
@@ -179,10 +168,10 @@ namespace SendPushSample
             NotificationOutcomeCollection collection = null;
             switch (pnsType)
             {
-                case "FCM":
-                case "FCM Silent":
-                case "FCM Tags":
-                case "FCM Direct":
+                case "FCMV1":
+                case "FCMV1 Silent":
+                case "FCMV1 Tags":
+                case "FCMV1 Direct":
                     collection = details.FcmOutcomeCounts;
                     break;
 
@@ -202,6 +191,18 @@ namespace SendPushSample
             }
 
             PrintPushOutcome(pnsType, details, collection);
+        }
+
+        private static SampleConfiguration LoadConfiguration(string[] args)
+        {
+            var configurationBuilder = new ConfigurationBuilder()
+                .AddJsonFile("config.json", true)
+                .AddCommandLine(args)
+                .Build();
+
+            var sampleConfig = new SampleConfiguration();
+            configurationBuilder.Bind(sampleConfig);
+            return sampleConfig;
         }
     }
 }
