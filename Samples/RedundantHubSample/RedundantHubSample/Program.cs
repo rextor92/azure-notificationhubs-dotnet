@@ -14,7 +14,7 @@ namespace RedundantHubSample
 {
     class Program
     {
-        private const string FcmSampleNotificationContent = "{\"data\":{\"message\":\"Notification Hub test notification from SDK sample\"}}";
+        private const string FcmV1SampleNotificationContent = "{\"message\":{\"data\":{\"message\":\"Notification Hub test notification from SDK sample\"}}}";
 
         static async Task Main(string[] args)
         {
@@ -33,14 +33,14 @@ namespace RedundantHubSample
                 Platform = NotificationPlatform.Fcm,
                 PushChannel = deviceId,
                 PushChannelExpired = false,
-                Tags = new[] { "fcm" }
+                Tags = new[] { "fcmv1" }
             };
             await nhClient.CreateOrUpdateInstallationAsync(installation);
 
             // Confirm if the installation is created for primary namepsace.
             await GetInstallationAsync(nhClient, installation.InstallationId);
             
-            var outcomeFcm = await nhClient.SendFcmNativeNotificationAsync(FcmSampleNotificationContent, installation.InstallationId);
+            var outcomeFcm = await nhClient.SendFcmV1NativeNotificationAsync(FcmV1SampleNotificationContent, installation.InstallationId);
             var details = await GetPushDetailsAndPrintOutcome(nhClient, outcomeFcm);
             PrintPushOutcome(details, true);
 
@@ -49,7 +49,7 @@ namespace RedundantHubSample
             await GetInstallationAsync(nhClient, installation.InstallationId);
 
             // Send notifications to installation in backup namespace
-            var outcomeFcmFromBackUp = await nhClient.SendFcmNativeNotificationAsync(FcmSampleNotificationContent, installation.InstallationId);
+            var outcomeFcmFromBackUp = await nhClient.SendFcmV1NativeNotificationAsync(FcmV1SampleNotificationContent, installation.InstallationId);
             var backupDetails = await GetPushDetailsAndPrintOutcome(nhClient, outcomeFcmFromBackUp);
             PrintPushOutcome(backupDetails, false);
         }
@@ -70,22 +70,11 @@ namespace RedundantHubSample
             }
         }
 
-        private static SampleConfiguration LoadConfiguration(string[] args)
-        {
-            ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
-            configurationBuilder.AddJsonFile("config.json", true);
-            configurationBuilder.AddCommandLine(args);
-            var configRoot = configurationBuilder.Build();
-            var sampleConfig = new SampleConfiguration();
-            configRoot.Bind(sampleConfig);
-            return sampleConfig;
-        }
-
         private static async Task<NotificationDetails> GetPushDetailsAndPrintOutcome(RedundantNotificationHubClient nhClient, NotificationOutcome notificationOutcome)
         {
             if (string.IsNullOrEmpty(notificationOutcome.NotificationId))
             {
-                Console.WriteLine($"Fcm has no outcome due to it is only available for Standard SKU pricing tier.");
+                Console.WriteLine($"FCM v1 has no outcome due to it is only available for Standard SKU pricing tier.");
                 return null;
             }
 
@@ -113,15 +102,27 @@ namespace RedundantHubSample
 
         private static void PrintPushOutcome(NotificationDetails details, bool isPrimary)
         {
-            if (details.FcmOutcomeCounts != null)
+            if (details.FcmV1OutcomeCounts != null)
             {
-                Console.WriteLine($"Notification outcome for {(isPrimary ? "Primary" : "Backup")}: " + string.Join(",", details.FcmOutcomeCounts.Select(kv => $"{kv.Key}:{kv.Value}")));
+                Console.WriteLine($"Notification outcome for {(isPrimary ? "Primary" : "Backup")}: " + string.Join(",", details.FcmV1OutcomeCounts.Select(kv => $"{kv.Key}:{kv.Value}")));
             }
             else
             {
                 Console.WriteLine($"No outcomes for {(isPrimary ? "Primary" : "Backup")}");
             }
             Console.WriteLine($"{(isPrimary ? "Primary" : "Backup")} error details URL: {details.PnsErrorDetailsUri}");
+        }
+
+        private static SampleConfiguration LoadConfiguration(string[] args)
+        {
+            var configurationBuilder = new ConfigurationBuilder()
+                .AddJsonFile("config.json", true)
+                .AddCommandLine(args)
+                .Build();
+
+            var sampleConfig = new SampleConfiguration();
+            configurationBuilder.Bind(sampleConfig);
+            return sampleConfig;
         }
     }
 }

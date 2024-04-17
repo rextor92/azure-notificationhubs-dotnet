@@ -37,6 +37,16 @@ cd ParseFeedbackSample
 dotnet run --primaryConnectionString "primaryConnectionString"
 ```
 
+## RedundantHubSample
+Samples CLI for having a redundant Notification Hubs
+
+To run the sample update the `config.json` file and execute the sample as such:
+
+```
+cd RedundantHubSample
+dotnet run --primaryConnectionString "primaryConnectionString" --backupConnectionString "backupConnectionString"
+```
+
 ## RegistrationSample
 Samples CLI for adding and deleting registrations and installations. 
 

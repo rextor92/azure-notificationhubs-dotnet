@@ -12,8 +12,8 @@ namespace RedundantHubSample
 
     public class RedundantNotificationHubClient
     {
-        private readonly INotificationHubClient _primaryNotificationHubClient;
-        private readonly INotificationHubClient _backupNotificationHubClient;
+        private readonly NotificationHubClient _primaryNotificationHubClient;
+        private readonly NotificationHubClient _backupNotificationHubClient;
 
         public RedundantNotificationHubClient(string primaryConnectionString, string backupConnectionString, string hubName)
         {
@@ -33,10 +33,10 @@ namespace RedundantHubSample
                 _primaryNotificationHubClient.GetInstallationAsync(installationId) :
                 _backupNotificationHubClient.GetInstallationAsync(installationId);
 
-        public Task<NotificationOutcome> SendFcmNativeNotificationAsync(string jsonPayload, string tagExpression, CancellationToken cancellationToken = default)
+        public Task<NotificationOutcome> SendFcmV1NativeNotificationAsync(string jsonPayload, string tagExpression, CancellationToken cancellationToken = default)
             => DefaultNamespace == DefaultNamespace.Primary ?
-                _primaryNotificationHubClient.SendFcmNativeNotificationAsync(jsonPayload, tagExpression, cancellationToken) :
-                _backupNotificationHubClient.SendFcmNativeNotificationAsync(jsonPayload, tagExpression, cancellationToken);
+                _primaryNotificationHubClient.SendFcmV1NativeNotificationAsync(jsonPayload, tagExpression, cancellationToken) :
+                _backupNotificationHubClient.SendFcmV1NativeNotificationAsync(jsonPayload, tagExpression, cancellationToken);
 
 
         public Task<NotificationDetails> GetNotificationOutcomeDetailsAsync(string notificationId, CancellationToken cancellationToken = default)
