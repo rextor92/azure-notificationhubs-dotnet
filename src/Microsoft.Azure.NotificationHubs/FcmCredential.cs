@@ -5,6 +5,7 @@
 //------------------------------------------------------------
 
 using Microsoft.Azure.NotificationHubs.Messaging;
+using System;
 using System.Runtime.Serialization;
 
 namespace Microsoft.Azure.NotificationHubs
