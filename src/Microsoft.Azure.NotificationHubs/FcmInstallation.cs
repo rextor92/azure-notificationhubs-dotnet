@@ -11,6 +11,7 @@ namespace Microsoft.Azure.NotificationHubs
     /// <summary>
     /// This class represents a Firebase Cloud Messaging (FCM) installation.
     /// </summary>
+    [Obsolete("FcmInstallation is deprecated, please use FcmV1Installation instead.")]
     public class FcmInstallation : Installation
     {
         /// <summary>

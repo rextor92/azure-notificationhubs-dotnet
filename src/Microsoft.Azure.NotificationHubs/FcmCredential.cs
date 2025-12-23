@@ -13,6 +13,7 @@ namespace Microsoft.Azure.NotificationHubs
     /// Represents the Firebase Cloud Messaging credential.
     /// </summary>
     [DataContract(Name = ManagementStrings.FcmCredential, Namespace = ManagementStrings.Namespace)]
+    [Obsolete("FcmCredential is deprecated, please use FcmV1Credential instead.")]
     public class FcmCredential : PnsCredential
     {
         internal const string AppPlatformName = "fcm";

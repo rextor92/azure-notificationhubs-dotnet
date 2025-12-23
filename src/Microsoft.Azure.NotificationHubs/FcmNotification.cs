@@ -12,6 +12,7 @@ namespace Microsoft.Azure.NotificationHubs
     /// <summary>
     /// Represents a Firebase Cloud Messaging notification.
     /// </summary>
+    [Obsolete("FcmNotification is deprecated, please use FcmV1Notification instead.")]
     public sealed class FcmNotification : Notification, INativeNotification
     {
         static string contentType = $"application/json;charset={Encoding.UTF8.WebName}";

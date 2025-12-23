@@ -60,7 +60,7 @@ This section details the usage of the Azure Notification Hubs SDK for .NET manag
 ### Create a namespace manager
 
 ```csharp
-var namespaceManager = new NamespaceManagerClient("connection string");
+var namespaceManager = new NamespaceManager("connection string");
 ```
 
 ### Create an Azure Notification Hub

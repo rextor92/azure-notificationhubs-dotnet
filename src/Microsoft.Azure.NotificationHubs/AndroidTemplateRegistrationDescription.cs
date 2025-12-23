@@ -19,7 +19,7 @@ namespace Microsoft.Azure.NotificationHubs
     /// Represents Notification Hub template registration description for Google Cloud Messaging
     /// </summary>
     [DataContract(Name = ManagementStrings.GcmTemplateRegistrationDescription, Namespace = ManagementStrings.Namespace)]
-    [Obsolete("GcmTemplateRegistrationDescription is deprecated, please use FcmTemplateRegistrationDescription instead.")]
+    [Obsolete("GcmTemplateRegistrationDescription is deprecated, please use FcmV1TemplateRegistrationDescription instead.")]
     public class GcmTemplateRegistrationDescription : GcmRegistrationDescription
     {
         internal override string AppPlatForm
@@ -176,6 +176,7 @@ namespace Microsoft.Azure.NotificationHubs
     /// Represents Notification Hub template registration description for Firebase Cloud Messaging
     /// </summary>
     [DataContract(Name = ManagementStrings.FcmTemplateRegistrationDescription, Namespace = ManagementStrings.Namespace)]
+    [Obsolete("FcmTemplateRegistrationDescription is deprecated, please use FcmV1TemplateRegistrationDescription instead.")]
     public class FcmTemplateRegistrationDescription : FcmRegistrationDescription
     {
         internal override string AppPlatForm
